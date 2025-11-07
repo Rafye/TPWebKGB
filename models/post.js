@@ -1,4 +1,4 @@
-import Model from './model';
+import Model from './model.js';
 
 export default class Post extends Model {
     constructor() {

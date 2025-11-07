@@ -167,7 +167,7 @@ function renderPostForm(post = null) {
     $("#content").append(`
         <form class="form" id="postForm">
             <input type="hidden" name="Id" value="${post.Id}"/>
-
+            <input type="hidden" name="Creation" value="${post.Creation}"/>
             <label for="Category" class="form-label">Catégorie </label>
             <input 
                 class="form-control Alpha"
