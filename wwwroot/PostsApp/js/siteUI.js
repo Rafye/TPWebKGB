@@ -149,7 +149,7 @@ function newPost() {
     post.Title = "";
     post.Text = "";
     post.Category = "";
-    post.Image = "";//Peut être change en image par defaut
+    post.Image = "./news-logo-upload.png";//Peut être change en image par defaut
     post.Creation = 0;
 
     return post;
@@ -161,7 +161,7 @@ function renderPostForm(post = null) {
     let create = post == null;
     if (create) {
         post = newPost();
-        post.Image = "images/no-avatar.png"; //Changer l'image par défault
+        post.Image = "./news-logo-upload.png"; //Changer l'image par défault
     }
     $("#actionTitle").text(create ? "Ajout" : "Modification");
     $("#content").append(`

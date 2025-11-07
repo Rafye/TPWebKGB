@@ -3,9 +3,9 @@
     "short_name": "Posts Manager",
     "icons": [
         {
-            "src": "contact-logo.svg",
+            "src": "news-logo.png",
             "sizes": "any",
-            "type": "image/svg+xml",
+            "type": "image/png+xml",
             "purpose": "any"
         }
     ],
