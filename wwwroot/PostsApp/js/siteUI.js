@@ -10,12 +10,38 @@ function Init_UI() {
         saveContentScrollPosition();
         renderCreatePostForm();
     });
+    //Activer la barre de recherche
+    $('#search').on("click", async function () {
+        toggleSearch();
+    });
+
     $('#abort').on("click", async function () {
         renderPosts();
     });
     $('#aboutCmd').on("click", function () {
         renderAbout();
     });
+}
+
+function toggleSearch() {
+    let searchBar = $("#searchContainer #search");
+    if (searchBar.length > 0) {
+        searchBar.remove();
+        renderPosts();
+    } else {
+        saveContentScrollPosition();
+        $("#createPost").hide();
+        $("#abort").show();
+        $("#searchContainer").append(
+            $(`
+                <div id="search">
+                    <div style="display:grid; grid-template-columns: auto auto; gap: 8px;">
+                        <input type="search" placeholder="Mot-clé, etc..." name="searchToken" id="searchToken" class="form-control" />
+                    </div>
+                </div>
+            `)
+        );
+    }
 }
 
 function renderAbout() {
