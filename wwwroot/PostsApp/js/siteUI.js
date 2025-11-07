@@ -1,5 +1,7 @@
 //<span class="cmdIcon fa-solid fa-ellipsis-vertical"></span>
 let contentScrollPosition = 0;
+let selectedCategory = "";
+let currentETag = "";
 Init_UI();
 
 function Init_UI() {
@@ -40,16 +42,65 @@ function renderAbout() {
             </div>
         `))
 }
+function updateDropDownMenu(categories) {
+    let DDMenu = $("#DDMenu");
+    let selectClass = selectedCategory === "" ? "fa-check" : "fa-fw";
+    DDMenu.empty();
+    DDMenu.append($(`
+        <div class="dropdown-item menuItemLayout" id="allCatCmd">
+            <i class="menuIcon fa ${selectClass} mx-2"></i> Toutes les catégories
+        </div>
+        `));
+    DDMenu.append($(`<div class="dropdown-divider"></div>`));
+    categories.forEach(category => {
+        selectClass = selectedCategory === category ? "fa-check" : "fa-fw";
+        DDMenu.append($(`
+            <div class="dropdown-item menuItemLayout category" id="allCatCmd">
+                <i class="menuIcon fa ${selectClass} mx-2"></i> ${category}
+            </div>
+        `));
+    })
+    DDMenu.append($(`<div class="dropdown-divider"></div> `));
+    DDMenu.append($(`
+        <div class="dropdown-item menuItemLayout" id="aboutCmd">
+            <i class="menuIcon fa fa-info-circle mx-2"></i> À propos...
+        </div>
+        `));
+    $('#aboutCmd').on("click", function () {
+        renderAbout();
+    });
+    $('#allCatCmd').on("click", function () {
+        selectedCategory = "";
+        renderPosts();
+    });
+    $('.category').on("click", function () {
+        selectedCategory = $(this).text().trim();
+        renderPosts();
+    });
+}
+function compileCategories(posts) {
+    let categories = [];
+    if (posts != null) {
+        posts.forEach(post => {
+            if (!categories.includes(post.Category))
+                categories.push(post.Category);
+        })
+        updateDropDownMenu(categories);
+    }
+}
 async function renderPosts() {
     showWaitingGif();
     $("#actionTitle").text("Liste des posts");
     $("#createPost").show();
     $("#abort").hide();
     let posts = await API_GetPosts();
+    //currentETag = Bookmarks_API.Etag;
+    compileCategories(posts);
     eraseContent();
     if (posts !== null) {
         posts.forEach(post => {
-            $("#content").append(renderPost(post));
+            if ((selectedCategory === "") || (selectedCategory === post.Category))
+                $("#content").append(renderPost(post));
         });
         restoreContentScrollPosition();
         // Attached click events on command icons
