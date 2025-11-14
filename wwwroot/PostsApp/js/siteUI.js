@@ -316,7 +316,7 @@ function renderPostForm(post = null) {
                 value="${post.Title}" 
             />
             <label for="Text" class="form-label">Texte </label>
-            <input 
+            <textarea
                 class="form-control Alpha"
                 name="Text"
                 id="Text"
@@ -325,7 +325,7 @@ function renderPostForm(post = null) {
                 RequireMessage="Veuillez entrer du texte" 
                 InvalidMessage="Veuillez entrer du texte valide"
                 value="${post.Text}"
-            />
+            >${post.Text}</textarea>
             <!-- nécessite le fichier javascript 'imageControl.js' -->
             <label class="form-label">Image </label>
             <div class='imageUploader'
