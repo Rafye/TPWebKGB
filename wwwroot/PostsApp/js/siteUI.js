@@ -155,14 +155,21 @@ async function renderPosts() {
     $("#createPost").show();
     $("#abort").hide();
     let posts = await API_GetPosts();
-    //currentETag = Bookmarks_API.Etag;
-    compileCategories(posts);
-    eraseContent();
-    if (posts !== null) {
+
+    if(posts !== null)
+    {
+        posts.sort((a,b) => {
+            const dateA = Number(a.Creation) || 0;
+            const dateB = Number(b.Creation) || 0;
+            return dateB - dateA;
+        });    
+        compileCategories(posts);
+        eraseContent();
         posts.forEach(post => {
             if ((selectedCategory === "") || (selectedCategory === post.Category))
                 $("#content").append(renderPost(post));
         });
+
         restoreContentScrollPosition();
         // Attached click events on command icons
         $(".editCmd").on("click", function () {
@@ -173,7 +180,9 @@ async function renderPosts() {
             saveContentScrollPosition();
             renderDeletePostForm($(this).attr("deletePostId"));
         });
-        $(".postRow").on("click", function (e) { e.preventDefault(); })
+        $(".postRow").on("click", function (e) { 
+            e.preventDefault(); 
+        });
     } else {
         renderError("Service introuvable");
     }
