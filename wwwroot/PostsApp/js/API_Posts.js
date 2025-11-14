@@ -1,4 +1,4 @@
-//const API_URL = "hhttps://api-server-2025.azurewebsites.net/api/contacts";
+//const API_URL = "https://api-server-2025.azurewebsites.net/api/posts";
 let currentHttpError = "";
     API_URL = "http://localhost:5000/api/posts";
 
