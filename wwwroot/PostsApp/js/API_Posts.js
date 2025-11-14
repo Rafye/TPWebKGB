@@ -1,6 +1,6 @@
 //const API_URL = "https://api-server-2025.azurewebsites.net/api/posts";
 let currentHttpError = "";
-    API_URL = "http://localhost:5000/api/posts";
+    API_URL = "https://tpwebkgb-aff3asb5fbgba7c4.canadacentral-01.azurewebsites.net/api/posts";
 
     function initHttpState() {
         currentHttpError = "";
