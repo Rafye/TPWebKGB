@@ -10,6 +10,6 @@ export default class Post extends Model {
         this.addField('Image', 'asset');
         this.addField('Creation', 'integer');
         
-        this.setKey("Title");
+        this.setKey("Id");
     }
 }
