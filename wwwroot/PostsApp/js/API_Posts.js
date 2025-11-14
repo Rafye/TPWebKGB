@@ -38,7 +38,7 @@ let currentHttpError = "";
 }
 
     function API_GetPosts() {
-        //initHttpState();
+        initHttpState();
         return new Promise(resolve => {
             $.ajax({
             url: API_URL,
@@ -60,7 +60,7 @@ let currentHttpError = "";
     }
 
     function API_SavePost(post, create) {
-       // initHttpState();
+        initHttpState();
         return new Promise(resolve => {
         $.ajax({
             url: create ? API_URL :  API_URL + "/" + post.Id,
@@ -77,18 +77,20 @@ let currentHttpError = "";
     });
 }
 
-    function API_DeletePost(id) {
+    function API_DeletePost(post) {
         initHttpState();
         return new Promise(resolve => {
         $.ajax({
-            url: API_URL + "/" + id,
+            url: API_URL + "/" + post.Id,
             type: "DELETE",
+            contentType: 'application/json',
+            data: JSON.stringify(post),
             success: (data, textStatus, jqXHR) => { 
                 currentHttpError = ""; 
                 const etag = jqXHR.getResponseHeader('ETag');
                 resolve({ success: true, etag: etag });
             },
-            error: (xhr) => { currentHttpError = xhr.responseJSON.error_description; resolve({ success: false, etag: null }); }
+            error: (xhr) => {currentHttpError = xhr.statusText; resolve({ success: false, etag: null }); }
         });
     });
 }

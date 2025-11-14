@@ -247,15 +247,16 @@ async function renderDeletePostForm(id) {
             <input type="button" value="Annuler" id="cancel" class="btn btn-secondary">
         </div>    
         `);
-        $('#deletePost').on("click", async function () {
+        $('#deletePost').on("click", async function (event) {
+            event.preventDefault();
             showWaitingGif();
-            let result = await API_DeletePost(post.Id);
+            let result = await API_DeletePost(post);
             if (result.success) {
                 // update current ETag from DELETE response
                 if (result.etag) currentETag = result.etag;
                 renderPosts();
             } else{
-                alert(API_currentHttpError || "Impossible de supprimer le post.");
+                renderError("Une erreur est survenue! " + API_getcurrentHttpError());
                 renderPosts(); 
             }
         });
