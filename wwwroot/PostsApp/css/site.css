@@ -54,7 +54,6 @@
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-gutter: stable;
-    scroll-snap-type: y mandatory;
     background-color: white;
     padding-bottom: 8px;
 }
@@ -76,15 +75,103 @@
 .postRow {
     padding: 8px;
     padding-bottom: 0px;
-    scroll-snap-align: start;
 }
 
 .postContainer {
+    position: relative;
     display: grid;
-    grid-template-columns: 4fr 1fr;
-    align-items: top;
-    background-color: rgb(87, 140, 255);
+    grid-template-columns: 1fr 40px;
+    gap: 15px;
+    background-color: white;
+
+     border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+     transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.postContainer:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.postContent {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.post-category {
+    background-color: #e9ecef;
+    color: #495057;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 500;
+}
+
+.post-date {
+    color: #6c757d;
+    font-size: 0.85em;
+}
+
+.post-title {
+    color: #212529;
+    margin: 0;
+    font-size: 1.5em;
+    font-weight: 600;
+}
+
+.post-image {
+    width: 100%;
+    max-height: 400px;
+    object-fit: cover;
     border-radius: 6px;
+    margin: 10px 0;
+}
+
+.post-text {
+    color: #495057;
+    line-height: 1.6;
+    margin: 10px 0 0;
+}
+
+.post-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    justify-content: flex-start;
+    padding-top: 5px;
+}
+.action-icon {
+    font-size: 1.2em;
+    color: #6c757d;
+    cursor: pointer;
+    transition: color 0.2s, transform 0.2s;
+    opacity: 0;
+    background: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.action-icon:hover {
+    color: #0d6efd;
+    transform: scale(1.1);
+}
+
+.fa-trash:hover {
+    color: #dc3545 !important;
 }
 
 .waitingGifcontainer {
@@ -219,4 +306,71 @@ a {
     color: black;
     padding: 0 2px;
     border-radius: 2px;
+}
+
+/* positionne les boutons de taille du texte */
+.text-size-controls {
+    display: flex;
+    gap: 5px;
+    margin-left: auto;
+    padding-right: 0 10px;
+}
+
+/* boutons de taille du texte */
+.text-size-btn {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.text-size-btn:hover {
+    opacity: 1;
+}
+
+/* style du texte de chaque post*/
+.post-text {
+    transition: font-size 0.3s ease;
+    margin: 0;
+}
+/* style du texte de chaque post*/
+.post-text{
+    margin: 10px 0; /* marge du texte */
+    line-height: 1.5; /* hauteur de ligne */
+    transition: all 0.3s ease;
+    word-wrap: break-word; /*permet de couper les long mots si le texte est trop long*/
+    overflow-wrap: break-word; /* meme chose mais pour d'autre browser*/
+    word-break: break-word; /* coupe les mots si le texte est trop long et qu'il depasse */
+    white-space: normal; 
+    width: 100%;
+    box-sizing: border-box;
+}
+.post-text.hideExtra{
+    display: -webkit-box; /* utilise des trucs custom */
+    -webkit-line-clamp: 3; /* limite le nombre de ligne avant que le user doivent cliquer sur la fleche*/
+    -webkit-box-orient: vertical; /*c'est ca qui fait en sorte que le texte se stack en vertical */
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.post-text.showExtra{
+    display: block;
+    -webkit-line-clamp: unset; /* enleve la limite de ligne avant qu'on voit tout le texte*/
+}
+.text-toggle
+{
+    text-align: center;
+    margin-top: 5px;
+}
+
+.text-toggle img{
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.text-toggle img:hover{
+    opacity: 1;
 }

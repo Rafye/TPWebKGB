@@ -6,4 +6,8 @@ export default class PostsController extends Controller {
     constructor(HttpContext) {
         super(HttpContext, new Repository(new PostModel()));
     }
+
+    list() {
+        this.get();
+    }
 }

@@ -1,4 +1,3 @@
-//<span class="cmdIcon fa-solid fa-ellipsis-vertical"></span>
 let contentScrollPosition = 0;
 let selectedCategory = "";
 let currentETag = "";
@@ -25,6 +24,19 @@ function Init_UI() {
     });
     $('#aboutCmd').on("click", function () {
         renderAbout();
+    });
+
+    //C'est pour le dynamisme (pour les chose ajouté au dom)
+
+    $(document).on('click', '.toggle-btn', function() {
+        const $btn = $(this);
+        const $postText = $btn.closest('.postContent').find('.post-text');        
+        // Alterne entre hideExtra et showExtra
+        $postText.toggleClass('hideExtra showExtra');
+        
+        // Alterne entre les boutons
+        $btn.siblings('.toggle-btn').toggle();
+        $btn.toggle();
     });
 }
 
@@ -142,7 +154,7 @@ async function renderPosts() {
     $("#actionTitle").text("Liste des posts");
     $("#createPost").show();
     $("#abort").hide();
-    let posts = await API_GetPosts();
+    let posts = await Posts_API.API_GetPosts();
     //currentETag = Bookmarks_API.Etag;
     compileCategories(posts);
     eraseContent();
@@ -194,7 +206,7 @@ function renderCreatePostForm() {
 }
 async function renderEditPostForm(id) {
     showWaitingGif();
-    let post = await API_GetPost(id);
+    let post = await Posts_API.API_GetPost(id);
     if (post !== null)
         renderPostForm(post);
     else
@@ -207,23 +219,28 @@ async function renderDeletePostForm(id) {
     $("#createPost").hide();
     $("#abort").show();
     $("#actionTitle").text("Retrait");
-    let post = await API_GetPost(id); //Changer API_GetContact par API_GetPost
+    let post = await Posts_API.API_GetPost(id);
     eraseContent();
     if (post !== null) {
+
+        //fonctionne pas complètement avec le format de la date
+        const creationDate = post.Creation ? convertToFrenchDate(post.Creation * 1000) : 'Date inconnue';
         $("#content").append(`
         <div class="postdeleteForm">
             <h4>Effacer le post suivant?</h4>
             <br>
-            <div class="postRow" post_id=${post.Id}">
+            <div class="postRow" post_id="${post.Id}">
                 <div class="postContainer">
-                    <div class="postLayout">
-                        <div class="postCategory">${post.Category}</div>
-                        <div class="postTitle">${post.Title}</div>
-                        <div class="Image" style="background-image:url('${post.Image}')"></div>
-                        <div class="postDate">${post.Creation}</div>
-                        <div class="postText">${post.Text}</div>
+                    <div class="postContent">
+                        <div class="post-header">
+                            <span class="post-category">${post.Category || 'Général'}</span>
+                            <span class="post-date">${creationDate}</span>
+                        </div>
+                        <h3 class="post-title">${post.Title}</h3>
+                        ${post.Image ? `<img src="${post.Image}" alt="${post.Title}" class="post-image">` : ''}
+                        <p class="post-text">${post.Text}</p>
                     </div>
-                </div>  
+                </div>   
             </div>   
             <br>
             <input type="button" value="Effacer" id="deletePost" class="btn btn-primary">
@@ -232,13 +249,15 @@ async function renderDeletePostForm(id) {
         `);
         $('#deletePost').on("click", async function () {
             showWaitingGif();
-            let result = await API_DeletePost(post.Id);
+            let result = await Posts_API.API_DeletePost(post.Id);
             if (result.success) {
                 // update current ETag from DELETE response
                 if (result.etag) currentETag = result.etag;
                 renderPosts();
-            } else
-                renderError("Une erreur est survenue!");
+            } else{
+                alert(Posts_API.API_currentHttpError || "Impossible de supprimer le post.");
+                renderPosts(); 
+            }
         });
         $('#cancel').on("click", function () {
             renderPosts();
@@ -309,11 +328,11 @@ function renderPostForm(post = null) {
             />
             <!-- nécessite le fichier javascript 'imageControl.js' -->
             <label class="form-label">Image </label>
-            <div   class='imageUploader' 
-                   newImage='${create}' 
-                   controlId='Image' 
-                   imageSrc='${post.Image}' 
-                   waitingImage="Loading_icon.gif">
+            <div class='imageUploader'
+                 controlId='Image'
+                 imageSrc='${post.Image}'
+                 newImage='${create}' 
+                 waitingImage="Loading_icon.gif">
             </div>
             <hr>
             <input type="submit" value="Enregistrer" id="savePost" class="btn btn-primary">
@@ -333,7 +352,7 @@ function renderPostForm(post = null) {
             renderPosts();
         }
         else
-            renderError("Une erreur est survenue! " + API_getcurrentHttpError());
+            renderError("Une erreur est survenue! " + Posts_API.API_getcurrentHttpError());
     });
     $('#cancel').on("click", function () {
         renderPosts();
@@ -350,23 +369,68 @@ function getFormData($form) {
 }
 
 function renderPost(post) {
-    return $(`
-     <div class="postRow" post_id=${post.Id}">
-        <div class="postContainer noselect">
-            <div class="postLayout">
-                <div class="postTitle">${post.Title}</div>
-                <div class="Image" style="background-image:url('${post.Image}')"></div>
-                <div class="postDate">${post.Creation}</div>
-                <div class="postText">${post.Text}</div>
-            </div>
-            <div class="postCommandPanel">
-                <span class= "Category">${post.Category}</span>
-                <span class="editCmd cmdIcon fa fa-pencil" editPostId="${post.Id}" title="Modifier ${post.Title}"></span>
-                <span class="deleteCmd cmdIcon fa fa-trash" deletePostId="${post.Id}" title="Effacer ${post.Title}"></span>
+    // fonctionne pas encore, mais j'y travaille
+    let creationDate;
+    if(post.Creation && post.Creation > 0)
+        creationDate = convertToFrenchDate(post.Creation * 1000);
+    else 
+        creationDate = 'Date inconnue';
+
+    const imageSrc = post.Image && (post.Image.startsWith('data:image/') ?
+        post.Image : 
+        post.Image.startsWith('http') ? 
+        post.Image : 
+        `/assetsRepository/${post.Image}`);
+
+    let $post = $(`
+        <div class="postRow" id="post_${post.Id}">
+            <div class="postContainer">
+                <div class="postContent">
+                    <div class="post-header">
+                        <span class="post-category">${post.Category || 'Général'}</span>
+                        <span class="post-date">${creationDate}</span>
+                    </div>
+                    <h3 class="post-title">${post.Title}</h3>
+                    ${post.Image ? `<img src="${imageSrc}" alt="${post.Title}" class="post-image">` : ''}
+                    <div class="post-text-container">
+                        <p class="post-text hideExtra">${post.Text}</p>
+                    </div>
+                    <div class="text-toggle">
+                        <img src="downArrows.png" alt="Show more text" class="toggle-btn" title="Afficher plus" data-expanded="false">
+                        <img src="upArrow.png" alt="Show less" class="toggle-btn" style="display: none;" title="Afficher moins" data-expanded="true">
+                    </div>
+                </div>
+                <div class="post-actions">
+                    <i class="fas fa-edit action-icon" title="Modifier"></i>
+                    <i class="fas fa-trash action-icon" title="Supprimer"></i>
+                </div>
             </div>
         </div>
-    </div>           
     `);
+    
+    // pour le look
+    $post.hover(
+        function() {
+            $(this).find('.action-icon').css('opacity', '1');
+        },
+        function() {
+            $(this).find('.action-icon').css('opacity', '0');
+        }
+    );
+    
+    // pour les events
+    $post.find('.fa-edit').on('click', (e) => {
+        e.stopPropagation();
+        saveContentScrollPosition();
+        renderEditPostForm(post.Id);
+    });
+    
+    $post.find('.fa-trash').on('click', (e) => {
+        e.stopPropagation();
+        renderDeletePostForm(post.Id);
+    });
+    
+    return $post;
 }
 
 function startPeriodicRefresh() {
