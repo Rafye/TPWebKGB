@@ -2,10 +2,15 @@
 let contentScrollPosition = 0;
 let selectedCategory = "";
 let currentETag = "";
+const periodicRefreshPeriod = 5; // seconds
+let hold_Periodic_Refresh = false;
+let periodicRefreshTimer = null;
 Init_UI();
 
 function Init_UI() {
     renderPosts();
+    // Start periodic ETag checks to refresh only when data changes
+    startPeriodicRefresh();
     $('#createPost').on("click", async function () {
         saveContentScrollPosition();
         renderCreatePostForm();
@@ -132,6 +137,8 @@ function compileCategories(posts) {
 }
 async function renderPosts() {
     showWaitingGif();
+    // Allow periodic refresh when displaying the posts list
+    hold_Periodic_Refresh = false;
     $("#actionTitle").text("Liste des posts");
     $("#createPost").show();
     $("#abort").hide();
@@ -194,6 +201,8 @@ async function renderEditPostForm(id) {
         renderError("Post introuvable!");
 }
 async function renderDeletePostForm(id) {
+    // pause periodic refresh while user confirms delete
+    hold_Periodic_Refresh = true;
     showWaitingGif();
     $("#createPost").hide();
     $("#abort").show();
@@ -224,9 +233,11 @@ async function renderDeletePostForm(id) {
         $('#deletePost').on("click", async function () {
             showWaitingGif();
             let result = await API_DeletePost(post.Id);
-            if (result)
+            if (result.success) {
+                // update current ETag from DELETE response
+                if (result.etag) currentETag = result.etag;
                 renderPosts();
-            else
+            } else
                 renderError("Une erreur est survenue!");
         });
         $('#cancel').on("click", function () {
@@ -248,6 +259,8 @@ function newPost() {
     return post;
 }
 function renderPostForm(post = null) {
+    // pause refresh while user is editing/creating a post
+    hold_Periodic_Refresh = true;
     $("#createPost").hide();
     $("#abort").show();
     eraseContent();
@@ -314,8 +327,11 @@ function renderPostForm(post = null) {
         let post = getFormData($("#postForm"));
         showWaitingGif();
         let result = await API_SavePost(post, create); //Changer par API_SavePost
-        if (result)
+        if (result.success) {
+            // update current ETag from POST/PUT response
+            if (result.etag) currentETag = result.etag;
             renderPosts();
+        }
         else
             renderError("Une erreur est survenue! " + API_getcurrentHttpError());
     });
@@ -351,4 +367,33 @@ function renderPost(post) {
         </div>
     </div>           
     `);
+}
+
+function startPeriodicRefresh() {
+    if (periodicRefreshTimer) return; // already started
+    // initialize current ETag once
+    (async () => {
+        try {
+            const etag = await API_HeadPosts();
+            if (etag) currentETag = etag;
+        } catch (e) { }
+    })();
+
+    periodicRefreshTimer = setInterval(async () => {
+        try {
+            if (hold_Periodic_Refresh) return;
+            const etag = await API_HeadPosts();
+            if (etag && etag !== currentETag) {
+                currentETag = etag;
+                renderPosts();
+            }
+        } catch (e) { }
+    }, periodicRefreshPeriod * 1000);
+}
+
+function stopPeriodicRefresh() {
+    if (periodicRefreshTimer) {
+        clearInterval(periodicRefreshTimer);
+        periodicRefreshTimer = null;
+    }
 }
