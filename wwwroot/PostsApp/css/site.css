@@ -300,3 +300,10 @@ input {
 a {
     text-decoration: none !important;
 }
+
+.highlight {
+    background-color: #fff700; /* pale yellow */
+    color: black;
+    padding: 0 2px;
+    border-radius: 2px;
+}

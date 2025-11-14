@@ -25,7 +25,10 @@ function Init_UI() {
 function toggleSearch() {
     let searchBar = $("#searchContainer #search");
     if (searchBar.length > 0) {
+        // If search bar exists, remove it and clear highlights
         searchBar.remove();
+        if (window.removeHighlights)
+            window.removeHighlights();
         renderPosts();
     } else {
         saveContentScrollPosition();
@@ -34,12 +37,25 @@ function toggleSearch() {
         $("#searchContainer").append(
             $(`
                 <div id="search">
-                    <div style="display:grid; grid-template-columns: auto auto; gap: 8px;">
-                        <input type="search" placeholder="Mot-clé, etc..." name="searchToken" id="searchToken" class="form-control" />
+                    <div style="display:grid; grid-template-columns: 1fr; gap: 8px;">
+                        <input type="search" placeholder="Mot-clé, etc..." name="searchToken" id="searchToken" class="form-control" style="width:100%;" />
                     </div>
                 </div>
             `)
         );
+
+        renderPosts();
+
+        $('#searchToken').on('input', function () {
+            const value = $(this).val();
+            if (!value || value.trim().length === 0) {
+                if (window.removeHighlights)
+                    window.removeHighlights();
+            } else {
+                if (window.highlightKeywords)
+                    window.highlightKeywords(value);
+            }
+        });
     }
 }
 
