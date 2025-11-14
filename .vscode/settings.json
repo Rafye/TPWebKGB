@@ -2,5 +2,7 @@
     "appService.zipIgnorePattern": [
         "node_modules{,/**}",
         ".vscode{,/**}"
-    ]
+    ],
+    "appService.defaultWebAppToDeploy": "/subscriptions/9e432db8-be5b-422f-a8d9-ba3ed02ea68d/resourceGroups/TPWebKGB/providers/Microsoft.Web/sites/TPWebKGB",
+    "appService.deploySubpath": "."
 }
