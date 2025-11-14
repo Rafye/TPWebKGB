@@ -79,8 +79,11 @@ export default class Response {
         return (obj != null ? this.end(JSON.stringify(obj)) : this.end());
     } // accepted status
     deleted() { return this.status(202); }  // accepted status
-    created(obj) {                      // created status
-        this.res.writeHead(201, { 'content-type': 'application/json' });
+    created(obj, ETag = "") {                      // created status
+        if (ETag !== "")
+            this.res.writeHead(201, { 'content-type': 'application/json', 'ETag': ETag });
+        else
+            this.res.writeHead(201, { 'content-type': 'application/json' });
         return this.end(JSON.stringify(obj));
     }
     content(contentType, content) {         // let the browers cache locally the receiverd content

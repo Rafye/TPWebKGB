@@ -20,8 +20,25 @@ let currentHttpError = "";
         return currentHttpError; 
     }
 
+    function API_HeadPosts() {
+    return new Promise(resolve => {
+        $.ajax({
+            url: API_URL,
+            type: 'HEAD',
+            success: function (data, textStatus, jqXHR) {
+                const etag = jqXHR.getResponseHeader('ETag');
+                currentHttpError = "";
+                resolve(etag);
+            },
+            error: function (xhr) {
+                resolve(null);
+            }
+        });
+    });
+}
+
     function API_GetPosts() {
-        initHttpState();
+        //initHttpState();
         return new Promise(resolve => {
             $.ajax({
             url: API_URL,
@@ -43,15 +60,19 @@ let currentHttpError = "";
     }
 
     function API_SavePost(post, create) {
-        initHttpState();
+       // initHttpState();
         return new Promise(resolve => {
         $.ajax({
             url: create ? API_URL :  API_URL + "/" + post.Id,
             type: create ? "POST" : "PUT",
             contentType: 'application/json',
             data: JSON.stringify(post),
-            success: (/*data*/) => { currentHttpError = ""; resolve(true); },
-            error: (xhr) => {currentHttpError = xhr.responseJSON.error_description; resolve(false /*xhr.status*/); }
+            success: (data, textStatus, jqXHR) => { 
+                currentHttpError = ""; 
+                const etag = jqXHR.getResponseHeader('ETag');
+                resolve({ success: true, etag: etag }); 
+            },
+            error: (xhr) => {currentHttpError = xhr.responseJSON.error_description; resolve({success: false, etag: null}); }
         });
     });
 }
@@ -62,9 +83,12 @@ let currentHttpError = "";
         $.ajax({
             url: API_URL + "/" + id,
             type: "DELETE",
-            success: () => { currentHttpError = ""; resolve(true); },
-            error: (xhr) => {currentHttpError = xhr.responseJSON.error_description; resolve(false /*xhr.status*/); }
+            success: (data, textStatus, jqXHR) => { 
+                currentHttpError = ""; 
+                const etag = jqXHR.getResponseHeader('ETag');
+                resolve({ success: true, etag: etag });
+            },
+            error: (xhr) => { currentHttpError = xhr.responseJSON.error_description; resolve({ success: false, etag: null }); }
         });
     });
-    }
-
+}

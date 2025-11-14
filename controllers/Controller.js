@@ -46,7 +46,8 @@ export default class Controller {
     post(data) {
         data = this.repository.add(data);
         if (this.repository.model.state.isValid) {
-            this.HttpContext.response.created(data);
+            // return the created resource and include the repository ETag
+            this.HttpContext.response.created(data, this.repository.ETag);
         } else {
             if (this.repository.model.state.inConflict)
                 this.HttpContext.response.conflict(this.repository.model.state.errors);
