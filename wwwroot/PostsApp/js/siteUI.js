@@ -20,6 +20,19 @@ function Init_UI() {
     $('#aboutCmd').on("click", function () {
         renderAbout();
     });
+
+    //C'est pour le dynamisme (pour les chose ajouté au dom)
+
+    $(document).on('click', '.toggle-btn', function() {
+        const $btn = $(this);
+        const $postText = $btn.closest('.postContent').find('.post-text');        
+        // Alterne entre hideExtra et showExtra
+        $postText.toggleClass('hideExtra showExtra');
+        
+        // Alterne entre les boutons
+        $btn.siblings('.toggle-btn').toggle();
+        $btn.toggle();
+    });
 }
 
 function toggleSearch() {
@@ -363,7 +376,13 @@ function renderPost(post) {
                     </div>
                     <h3 class="post-title">${post.Title}</h3>
                     ${post.Image ? `<img src="${imageSrc}" alt="${post.Title}" class="post-image">` : ''}
-                    <p class="post-text">${post.Text}</p>
+                    <div class="post-text-container">
+                        <p class="post-text hideExtra">${post.Text}</p>
+                    </div>
+                    <div class="text-toggle">
+                        <img src="downArrows.png" alt="Show more text" class="toggle-btn" title="Afficher plus" data-expanded="false">
+                        <img src="upArrow.png" alt="Show less" class="toggle-btn" style="display: none;" title="Afficher moins" data-expanded="true">
+                    </div>
                 </div>
                 <div class="post-actions">
                     <i class="fas fa-edit action-icon" title="Modifier"></i>

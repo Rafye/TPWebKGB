@@ -129,4 +129,5 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
-jsonFiles/Posts.json
+jsonFiles/*
+wwwroot/assetsRepository/*
