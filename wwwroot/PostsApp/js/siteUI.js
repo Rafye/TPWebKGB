@@ -1,6 +1,7 @@
 let contentScrollPosition = 0;
 let selectedCategory = "";
 let currentETag = "";
+let postsCache = null;
 const periodicRefreshPeriod = 5; // seconds
 let hold_Periodic_Refresh = false;
 let periodicRefreshTimer = null;
@@ -64,15 +65,15 @@ function toggleSearch() {
 
         renderPosts();
 
+        // Re-render posts on each input so filtering works live.
         $('#searchToken').on('input', function () {
-            const value = $(this).val();
+            const value = $(this).val() || '';
             if (!value || value.trim().length === 0) {
                 if (window.removeHighlights)
                     window.removeHighlights();
-            } else {
-                if (window.highlightKeywords)
-                    window.highlightKeywords(value);
             }
+            // renderPosts will read the searchToken value and filter accordingly
+            renderPosts();
         });
     }
 }
@@ -154,7 +155,16 @@ async function renderPosts() {
     $("#actionTitle").text("Liste des posts");
     $("#createPost").show();
     $("#abort").hide();
-    let posts = await API_GetPosts();
+    // If a search token exists and we have a cached posts list, use it
+    const $searchInput = ($('#searchToken').length > 0) ? $('#searchToken') : $();
+    const searchValue = ($searchInput && $searchInput.length > 0) ? ($searchInput.val() || '').trim() : '';
+    let posts = null;
+    if (searchValue && postsCache) {
+        posts = postsCache;
+    } else {
+        posts = await API_GetPosts();
+        postsCache = posts; // update cache after fetching
+    }
 
     if(posts !== null)
     {
@@ -163,12 +173,29 @@ async function renderPosts() {
             const dateB = Number(b.Creation) || 0;
             return dateB - dateA;
         });    
+        // If searching, filter posts by title or text (diacritics-insensitive)
+        const normalizeForSearch = s => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        let postsToShow = posts;
+        if (searchValue) {
+            const normSearch = normalizeForSearch(searchValue);
+            postsToShow = posts.filter(p => {
+                const inCategory = (selectedCategory === "") || (selectedCategory === p.Category);
+                if (!inCategory) return false;
+                const hay = normalizeForSearch((p.Title || '') + ' ' + (p.Text || ''));
+                return hay.indexOf(normSearch) !== -1;
+            });
+        }
+
         compileCategories(posts);
         eraseContent();
-        posts.forEach(post => {
-            if ((selectedCategory === "") || (selectedCategory === post.Category))
-                $("#content").append(renderPost(post));
+        postsToShow.forEach(post => {
+            $("#content").append(renderPost(post));
         });
+
+        // If searching, apply highlights to the rendered posts
+        if (searchValue && window.highlightKeywords) {
+            window.highlightKeywords(searchValue);
+        }
 
         restoreContentScrollPosition();
         // Attached click events on command icons
