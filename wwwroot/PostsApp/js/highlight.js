@@ -39,7 +39,8 @@ function highlight(text, elem) {
         const found = normText.indexOf(normalizedSearch, pos);
         if (found === -1) break;
         matches.push(found);
-        pos = found + normalizedSearch.length;
+        // advance by 1 to allow overlapping matches (e.g. 'hhhh' with 'hhh')
+        pos = found + 1;
     }
     if (matches.length === 0) return;
 
@@ -67,19 +68,21 @@ function highlight(text, elem) {
         const parent = nodes[startNodeIdx].parentNode;
 
         if (startNodeIdx === endNodeIdx) {
+            // For matches contained in a single text node we use splitText
+            // so we don't invalidate the original node objects that
+            // earlier matches rely on (we process matches last->first).
             const node = nodes[startNodeIdx];
-            const before = node.nodeValue.slice(0, startOffset);
-            const after = node.nodeValue.slice(endOffset);
-            const beforeNode = document.createTextNode(before);
+            const matchLen = normalizedSearch.length;
+            // Split at the match start: node becomes "before", mid starts with match
+            const mid = node.splitText(startOffset);
+            // Split mid after the match to produce "matched" and "after"
+            const afterNode = mid.splitText(matchLen);
+            const matchedNode = mid; // contains exactly the matched text
             const span = document.createElement('span');
             span.className = 'highlight';
-            span.textContent = matchText;
-            const afterNode = document.createTextNode(after);
-            parent.insertBefore(beforeNode, node);
-            parent.insertBefore(span, node);
-            parent.insertBefore(afterNode, node);
-            parent.removeChild(node);
-            nodes[startNodeIdx] = afterNode;
+            span.textContent = matchedNode.nodeValue;
+            matchedNode.parentNode.replaceChild(span, matchedNode);
+            // do not modify the `nodes` array — keep original references intact
         } else {
             const firstNode = nodes[startNodeIdx];
             const lastNode = nodes[endNodeIdx];
@@ -97,16 +100,18 @@ function highlight(text, elem) {
                 const nodeToRemove = nodes[ri];
                 if (nodeToRemove.parentNode) nodeToRemove.parentNode.removeChild(nodeToRemove);
             }
-            nodes[startNodeIdx] = afterNode;
+            // we avoid reassigning entries in `nodes` to keep original
+            // mapping stable for earlier matches (we process matches in reverse)
         }
 
-        // Mark matched normalized chars so they won't be re-matched
-        for (let i = startNorm; i <= endNorm; i++) normChars[i] = ' ';
+        // NOTE: we don't blank matched normalized chars here —
+        // matches were calculated on the original normalized text and
+        // we process replacements from last to first, so indices remain valid.
     }
 }
 
 function removeHighlights() {
-    const selectors = ['.postTitle', '.postText'];
+    const selectors = ['.post-title', '.post-text', '.postTitle', '.postText'];
     selectors.forEach(sel => {
         const elems = document.querySelectorAll(sel);
         elems.forEach(elem => {
@@ -138,10 +143,13 @@ function highlightKeywords(searchValue) {
     const keywords = value.split(/\s+/).map(k => k.trim()).filter(k => k.length >= minKeywordLenth);
     if (keywords.length === 0) return;
 
-    Array.from(document.getElementsByClassName('postTitle')).forEach(title => {
+    // support both dash-separated and camelCase class names
+    const titleElems = document.querySelectorAll('.post-title, .postTitle');
+    titleElems.forEach(title => {
         keywords.forEach(k => highlight(k, title));
     });
-    Array.from(document.getElementsByClassName('postText')).forEach(text => {
+    const textElems = document.querySelectorAll('.post-text, .postText');
+    textElems.forEach(text => {
         keywords.forEach(k => highlight(k, text));
     });
 }
