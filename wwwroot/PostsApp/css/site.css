@@ -374,3 +374,13 @@ a {
 .text-toggle img:hover{
     opacity: 1;
 }
+.form-check{
+    margin: 15px 0;
+}
+
+.form-check-input{
+    margin-right: 8px;
+}
+.form-check-label{
+  user-select: none;
+}

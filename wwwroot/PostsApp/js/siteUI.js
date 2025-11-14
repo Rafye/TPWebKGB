@@ -147,7 +147,7 @@ async function renderPosts() {
     $("#actionTitle").text("Liste des posts");
     $("#createPost").show();
     $("#abort").hide();
-    let posts = await Posts_API.API_GetPosts();
+    let posts = await API_GetPosts();
     //currentETag = Bookmarks_API.Etag;
     compileCategories(posts);
     eraseContent();
@@ -199,7 +199,7 @@ function renderCreatePostForm() {
 }
 async function renderEditPostForm(id) {
     showWaitingGif();
-    let post = await Posts_API.API_GetPost(id);
+    let post = await API_GetPost(id);
     if (post !== null)
         renderPostForm(post);
     else
@@ -210,7 +210,7 @@ async function renderDeletePostForm(id) {
     $("#createPost").hide();
     $("#abort").show();
     $("#actionTitle").text("Retrait");
-    let post = await Posts_API.API_GetPost(id);
+    let post = await API_GetPost(id);
     eraseContent();
     if (post !== null) {
 
@@ -240,11 +240,11 @@ async function renderDeletePostForm(id) {
         `);
         $('#deletePost').on("click", async function () {
             showWaitingGif();
-            let result = await Posts_API.API_DeletePost(post.Id);
+            let result = await API_DeletePost(post.Id);
             if (result)
                 renderPosts();
             else{
-                alert(Posts_API.API_currentHttpError || "Impossible de supprimer le post.");
+                alert(API_currentHttpError || "Impossible de supprimer le post.");
                 renderPosts(); 
             }
         });
@@ -262,8 +262,7 @@ function newPost() {
     post.Text = "";
     post.Category = "";
     post.Image = "./news-logo-upload.png";//Peut être change en image par defaut
-    post.Creation = 0;
-
+    post.Creation = Date.now() / 1000;
     return post;
 }
 function renderPostForm(post = null) {
@@ -321,6 +320,10 @@ function renderPostForm(post = null) {
                  newImage='${create}' 
                  waitingImage="Loading_icon.gif">
             </div>
+            <div class="mb-3 form-check">
+                <input type="checkbox" class="form-check-input" id="updateDate"/>
+                <label class="form-check-label" for="updateDate">Mettre à jour la date de création</label>
+            </div>
             <hr>
             <input type="submit" value="Enregistrer" id="savePost" class="btn btn-primary">
             <input type="button" value="Annuler" id="cancel" class="btn btn-secondary">
@@ -331,12 +334,18 @@ function renderPostForm(post = null) {
     $('#postForm').on("submit", async function (event) {
         event.preventDefault();
         let post = getFormData($("#postForm"));
+
+        if(post.Id && $('#updateDate').is(':checked'))
+        {
+            post.Creation = Date.now() / 1000;
+        }
+
         showWaitingGif();
-        let result = await Posts_API.API_SavePost(post, create); //Changer par API_SavePost
+        let result = await API_SavePost(post, create); //Changer par API_SavePost
         if (result)
             renderPosts();
         else
-            renderError("Une erreur est survenue! " + Posts_API.API_getcurrentHttpError());
+            renderError("Une erreur est survenue! " + API_getcurrentHttpError());
     });
     $('#cancel').on("click", function () {
         renderPosts();
