@@ -1,18 +1,1 @@
-[
-    {
-        "Id": "8d7b8730-bbf5-11f0-ba67-5fda4cfa7d2b",
-        "Creation": 0,
-        "Category": "Test",
-        "Title": "test",
-        "Text": "test",
-        "Image": "8d7bd550-bbf5-11f0-ba67-5fda4cfa7d2b.jpeg"
-    },
-    {
-        "Id": "c7536b80-bbf5-11f0-ba67-5fda4cfa7d2b",
-        "Creation": 0,
-        "Category": "test",
-        "Title": "testdeux",
-        "Text": "testdeux",
-        "Image": "c753b9a0-bbf5-11f0-ba67-5fda4cfa7d2b.png"
-    }
-]
+[]
